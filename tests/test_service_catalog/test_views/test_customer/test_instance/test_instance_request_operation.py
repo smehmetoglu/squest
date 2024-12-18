@@ -55,7 +55,7 @@ class TestCustomerInstanceRequestOperation(BaseTestRequest):
 
     def test_customer_cannot_request_admin_operation(self):
         # set an operation to be admin only
-        self.update_operation_test.is_admin_operation = True
+        self.update_operation_test.permission = self.admin_operation
         self.update_operation_test.save()
         args = {
             'instance_id': self.test_instance.id,
@@ -131,3 +131,26 @@ class TestCustomerInstanceRequestOperation(BaseTestRequest):
         response = self.client.get(url)
         self.assertEqual(200, response.status_code)
         self.assertIn(b"start name.domain.local end", response.content)
+
+    def test_cannot_request_non_available_instance_because_of_when(self):
+        self.update_operation_test.when = "instance.user_spec.location=='grenoble'"
+        self.update_operation_test.save()
+        args = {
+            'instance_id': self.test_instance.id,
+            'operation_id': self.update_operation_test.id
+        }
+        data = {'text_variable': 'my_var'}
+        url = reverse('service_catalog:instance_request_new_operation', kwargs=args)
+        response = self.client.get(url)
+        self.assertEqual(403, response.status_code)
+        response = self.client.post(url, data=data)
+        self.assertEqual(403, response.status_code)
+
+        self.test_instance.user_spec = {
+            "location": "grenoble"
+        }
+        self.test_instance.save()
+        response = self.client.get(url)
+        self.assertEqual(200, response.status_code)
+        response = self.client.post(url, data=data)
+        self.assertEqual(302, response.status_code)

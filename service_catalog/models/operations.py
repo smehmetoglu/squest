@@ -1,16 +1,22 @@
 from django.core.exceptions import ValidationError
-from django.db.models import CharField, ForeignKey, BooleanField, IntegerField, CASCADE, SET_NULL, JSONField
+from django.db.models import CharField, ForeignKey, BooleanField, IntegerField, CASCADE, SET_NULL, JSONField, \
+    PROTECT
 from django.db.models.signals import post_save, pre_save, post_delete
 from django.dispatch import receiver
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 
+from Squest.utils.ansible_when import AnsibleWhen
 from Squest.utils.plugin_controller import PluginController
 from Squest.utils.squest_model import SquestModel
+from profiles.models import Permission
 from service_catalog.models.job_templates import JobTemplate
 from service_catalog.models.operation_type import OperationType
 from service_catalog.models.services import Service
 
+
+def get_default_permission_pk():
+    return Permission.objects.get(codename="view_operation", content_type__app_label="service_catalog").id
 
 class Operation(SquestModel):
     name = CharField(max_length=100)
@@ -28,8 +34,6 @@ class Operation(SquestModel):
     process_timeout_second = IntegerField(default=60, verbose_name="Process timeout (s)")
     enabled = BooleanField(default=True, blank=True)
     extra_vars = JSONField(default=dict, blank=True)
-    is_admin_operation = BooleanField(default=False, blank=True, verbose_name="Admin operation",
-                                      help_text='Create operations are protected by "service_catalog.admin_request_on_service", others by "service_catalog.admin_request_on_instance".')
     default_inventory_id = CharField(max_length=500, blank=True, null=True,
                                      help_text="Jinja supported with context {{ request }}. "
                                                "Id of the inventory to use by default. "
@@ -51,6 +55,16 @@ class Operation(SquestModel):
     default_job_type = CharField(max_length=500, blank=True, null=True,
                                  help_text="Jinja supported. Job template type")
     validators = CharField(null=True, blank=True, max_length=200, verbose_name="Survey validators")
+    when = CharField(max_length=2000, blank=True, null=True,
+                     help_text="Ansible like 'when' with `instance` as context. No Jinja brackets needed. Cannot be set on 'create' type of operation as the instance does not exist yet")
+    permission = ForeignKey(
+        Permission,
+        on_delete=PROTECT,
+        related_name="operation",
+        limit_choices_to={"content_type__app_label": "service_catalog", 'content_type__model': 'operation'},
+        default=get_default_permission_pk,
+        help_text="Permission to view the operation. Evaluated only at Global Scope and Default Permission level"
+    )
 
     @property
     def validators_name(self):
@@ -154,6 +168,15 @@ class Operation(SquestModel):
                     )
                     position += 1
 
+
+    def when_instance_authorized(self, instance):
+        from service_catalog.api.serializers import InstanceSerializer
+        if not self.when:
+            return True
+        when_context = {
+            "instance": InstanceSerializer(instance).data
+        }
+        return AnsibleWhen.when_render(context=when_context, when_string=self.when)
 
 post_save.connect(Operation.add_job_template_survey_as_default_survey, sender=Operation)
 

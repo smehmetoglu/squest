@@ -1,3 +1,44 @@
+# 2.7.2 2024-12-18
+
+## Fix 
+
+- Operation table was missing from instance details view
+
+# 2.7.0 2024-12-16
+
+## Breaking changes ⚠
+
+- drop support for docker compose v1
+- SurveyValidator form utils import switched from `from service_catalog.forms import SurveyValidator` to `from service_catalog.forms.form_utils import SurveyValidator`
+
+## Fix 
+
+- Credential id set in operation was not sent to AWX
+
+## Enhancement
+
+- Add support of multiple workers to gunicorn to speedup Squest
+
+## Feature
+
+- Add permission on operation, service and portfolio
+
+# 2.6.1 2024-11-15
+
+## Fix 
+
+- Fix file image upload in documentation
+- Standard users no longer able to list admin CREATE operation
+
+
+## Enhancement
+
+- UI: accept button show when auto process will be executed after approval
+- UI: add auto accept and auto process status icon for all user
+- add when condition parameter on day 2 operations
+- Add parameter to define list of administrators to which to send 500 errors via SMTP
+- Add parameters to login into SMTP server
+
 # 2.6.0 2024-05-22
 
 ## Fix 

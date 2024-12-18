@@ -27,7 +27,6 @@ class Instance(SquestModel):
             ("archive_instance", "Can archive instance"),
             ("unarchive_instance", "Can unarchive instance"),
             ("request_on_instance", "Can request a day2 operation on instance"),
-            ("admin_request_on_instance", "Can request an admin day2 operation on instance"),
             ("view_admin_spec_instance", "Can view admin spec on instance"),
             ("change_admin_spec_instance", "Can change admin spec on instance"),
             ("rename_instance", "Can rename instance"),
@@ -116,6 +115,8 @@ class Instance(SquestModel):
     @property
     def docs(self):
         filtered_doc = list()
+        if self.service is None:
+            return filtered_doc
         from service_catalog.api.serializers import InstanceSerializer
         for doc in self.service.docs.all():
             context = {

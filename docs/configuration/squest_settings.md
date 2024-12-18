@@ -164,7 +164,7 @@ E.G: "Use your corporate email and password".
 
 ### MAINTENANCE_MODE_ENABLED
 
-**Default:** False
+**Default:** `False`
 
 When enabled, only administrators can access squest UI and API. 
 This can be used for example to block new requests by end users from the service catalog. So an administrator can perform operations against the API like migrating instance specs.
@@ -185,6 +185,17 @@ Address of the Squest portal instance. Used in email templates and in metadata s
 
 Domain name used as email sender. E.g: "squest@squest.domain.local". 
 
+### SQUEST_ADMINS
+
+**Default:** `''`
+
+A list of all the email who get code error notifications. When DEBUG=False.
+Example:
+
+```text
+elias.boulharts@mail.com,nicolas.marcq@mail.com
+```
+
 ### SQUEST_EMAIL_NOTIFICATION_ENABLED
 
 **Default:** Based on `DEBUG` value by default
@@ -193,9 +204,15 @@ Set to `True` to enable email notifications.
 
 ### IS_DEV_SERVER
 
-**Default:** False
+**Default:** `False`
 
 Set to `True` to change the navbar and footer color to visually identify a testing instance of Squest.
+
+### GUNICORN_WORKERS
+
+**Default:** `4`
+
+Number of workers used by Gunicorn process in charge of serving client connection. Increase the number of worker threads to serve more clients concurrently
 
 ## SMTP
 
@@ -209,7 +226,25 @@ The SMTP host to use for sending email.
 
 **Default:** `25`
 
-Port to use for the SMTP server defined in `EMAIL_HOST`.  
+Port to use for the SMTP server defined in `EMAIL_HOST`.
+
+### EMAIL_HOST_USER
+
+**Default:** `None`
+
+User to use to authenticate with the SMTP server defined in `EMAIL_HOST` in combination with `EMAIL_HOST_PASSWORD`. Leave empty/unconfigured to send emails unauthenticated.
+
+### EMAIL_HOST_PASSWORD
+
+**Default:** `None`
+
+Password to use to authenticate with the SMTP server defined in `EMAIL_HOST` in combination with `EMAIL_HOST_USER`. Leave empty/unconfigured to send emails unauthenticated.
+
+### EMAIL_USE_SSL
+
+**Default:** `False`
+
+Whether to use an implicit TLS (secure) connection when talking to the SMTP server defined in `EMAIL_HOST`.
 
 ## Backup
 
@@ -287,7 +322,7 @@ Django secret key used for cryptographic signing. [Doc](https://docs.djangoproje
 
 ### DEBUG
 
-**Default:** True
+**Default:** `True`
 
 Django DEBUG mode. Switch to `False` for production.
 

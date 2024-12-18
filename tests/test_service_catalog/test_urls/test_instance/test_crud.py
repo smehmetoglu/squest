@@ -1,8 +1,8 @@
 import json
 
 from service_catalog.models import InstanceState
-from tests.test_service_catalog.base_test_request import BaseTestRequest
 from tests.permission_endpoint import TestingGetContextView, TestingPostContextView, TestPermissionEndpoint
+from tests.test_service_catalog.base_test_request import BaseTestRequest
 
 
 class TestServiceCatalogInstancePermissionsCRUDViews(BaseTestRequest, TestPermissionEndpoint):
@@ -14,28 +14,28 @@ class TestServiceCatalogInstancePermissionsCRUDViews(BaseTestRequest, TestPermis
         self.test_instance.save()
         self.test_instance_2.save()
 
-        self.update_operation_test_2.is_admin_operation = True
+        self.update_operation_test_2.permission = self.admin_operation
         self.update_operation_test_2.save()
 
     def test_crud_views(self):
         testing_view_list = [
             TestingGetContextView(
                 url='service_catalog:instance_list',
-                perm_str='service_catalog.list_instance',
+                perm_str_list=['service_catalog.list_instance'],
             ),
             TestingGetContextView(
                 url='service_catalog:instance_details',
-                perm_str='service_catalog.view_instance',
+                perm_str_list=['service_catalog.view_instance'],
                 url_kwargs={'pk': self.test_instance.id}
             ),
             TestingGetContextView(
                 url='service_catalog:instance_request_new_operation',
-                perm_str='service_catalog.request_on_instance',
+                perm_str_list=['service_catalog.request_on_instance',self.update_operation_test.permission.permission_str],
                 url_kwargs={'instance_id': self.test_instance.id, 'operation_id': self.update_operation_test.id}
             ),
             TestingPostContextView(
                 url='service_catalog:instance_request_new_operation',
-                perm_str='service_catalog.request_on_instance',
+                perm_str_list=['service_catalog.request_on_instance',self.update_operation_test.permission.permission_str],
                 url_kwargs={'instance_id': self.test_instance.id, 'operation_id': self.update_operation_test.id},
                 data={
                     'text_variable': 'test'
@@ -43,12 +43,12 @@ class TestServiceCatalogInstancePermissionsCRUDViews(BaseTestRequest, TestPermis
             ),
             TestingGetContextView(
                 url='service_catalog:instance_request_new_operation',
-                perm_str='service_catalog.admin_request_on_instance',
+                perm_str_list=['service_catalog.request_on_instance',self.update_operation_test_2.permission.permission_str],
                 url_kwargs={'instance_id': self.test_instance_2.id, 'operation_id': self.update_operation_test_2.id}
             ),
             TestingPostContextView(
                 url='service_catalog:instance_request_new_operation',
-                perm_str='service_catalog.admin_request_on_instance',
+                perm_str_list=['service_catalog.request_on_instance',self.update_operation_test_2.permission.permission_str],
                 url_kwargs={'instance_id': self.test_instance_2.id, 'operation_id': self.update_operation_test_2.id},
                 data={
                     'text_variable': 'test'
@@ -56,12 +56,12 @@ class TestServiceCatalogInstancePermissionsCRUDViews(BaseTestRequest, TestPermis
             ),
             TestingGetContextView(
                 url='service_catalog:instance_edit',
-                perm_str='service_catalog.change_instance',
+                perm_str_list=['service_catalog.change_instance'],
                 url_kwargs={'pk': self.test_instance.id}
             ),
             TestingPostContextView(
                 url='service_catalog:instance_edit',
-                perm_str='service_catalog.change_instance',
+                perm_str_list=['service_catalog.change_instance'],
                 url_kwargs={'pk': self.test_instance.id},
                 data={
                     'name': 'new_instance_name',
@@ -75,12 +75,12 @@ class TestServiceCatalogInstancePermissionsCRUDViews(BaseTestRequest, TestPermis
             ),
             TestingGetContextView(
                 url='service_catalog:instance_delete',
-                perm_str='service_catalog.delete_instance',
+                perm_str_list=['service_catalog.delete_instance'],
                 url_kwargs={'pk': self.test_instance.id}
             ),
             TestingPostContextView(
                 url='service_catalog:instance_delete',
-                perm_str='service_catalog.delete_instance',
+                perm_str_list=['service_catalog.delete_instance'],
                 url_kwargs={'pk': self.test_instance.id}
             )
         ]
